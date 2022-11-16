@@ -5,7 +5,6 @@ import os
 import random
 
 import numpy as np
-import pandas as pd
 
 import torch
 import torchaudio
@@ -17,17 +16,17 @@ from torchaudio import sox_effects, transforms
 
 
 class DefaultSet(Dataset):
-    def __init__(self, root, subset, input_len, n_fft, sample_rate=None):
+    def __init__(self, root, subset, input_len, n_fft, gender, sample_rate=None):
         super().__init__()
 
         self.sample_rate = 44100 if sample_rate is None else sample_rate
         self.input_len = input_len
         self.fft = transforms.Spectrogram(n_fft=n_fft)
-
-        data = pd.read_csv(os.path.join(root, subset + '.csv'))
-        self.files = tuple(data['vocal'])
-        labels = tuple(data['label'])
-
+        self.gender = gender
+        
+        with open(os.path.join(root,subset + '.csv')) as input_csv:
+            self.files, labels = zip(*[(row[0], int(row[1])) for row in csv.reader(input_csv)])
+            
         uniq_labels = sorted(set(labels))
         self.num_classes = len(uniq_labels)
 
@@ -35,11 +34,7 @@ class DefaultSet(Dataset):
 
     def load(self, index):
         audio, sample_rate = torchaudio.load(self.files[index])
-        if sample_rate != 44100:
-            transform = transforms.Resample(sample_rate, 44100)
-            audio = transform(audio)
-            sample_rate = 44100
-        assert sample_rate == self.sample_rate
+#         assert sample_rate == self.sample_rate
         return torch.unsqueeze(torch.mean(audio, axis=0), dim=0)  # make it mono
 
     def reshape(self, audio, length):
@@ -60,10 +55,10 @@ class DefaultSet(Dataset):
 
 
 class ContrastiveSet(DefaultSet):
-    def __init__(self, root, subset, input_len, n_fft, pitch, stretch, sample_rate=None):
-        super().__init__(root, subset, input_len, n_fft, sample_rate)
+    def __init__(self, root, subset, input_len, n_fft, pitch, stretch, gender, sample_rate=None):
+        super().__init__(root, subset, input_len, n_fft, sample_rate, gender)
         self.pitch, self.stretch = pitch, stretch
-
+        
     def pitch_shift(self, audio, pitch):
         source = self.reshape(audio, self.input_len + 50)
 
@@ -87,7 +82,10 @@ class ContrastiveSet(DefaultSet):
         audio_orig = self.reshape(audio, self.input_len)
 
         reshape_func = functools.partial(self.reshape, length=self.input_len)
-        pitch_func = functools.partial(self.pitch_shift, pitch=random.choice([-3, 3]))
+        if self.gender == 0:
+            pitch_func = functools.partial(self.pitch_shift, pitch=random.choice([0, 6]))
+        elif self.gender == 1:
+            pitch_func = functools.partial(self.pitch_shift, pitch=random.choice([-6, 0]))
         stretch_func = functools.partial(self.time_stretch, speed=random.choice([0.65, 1.70]))
 
         pos_funcs = []
