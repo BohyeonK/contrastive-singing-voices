@@ -22,7 +22,7 @@ class DefaultSet(Dataset):
         self.sample_rate = 44100 if sample_rate is None else sample_rate
         self.input_len = input_len
         self.fft = transforms.Spectrogram(n_fft=n_fft)
-        self.gender = gender
+        self.gender = 0
         
         with open(os.path.join(root,subset + '.csv')) as input_csv:
             self.files, labels = zip(*[(row[0], int(row[1])) for row in csv.reader(input_csv)])
