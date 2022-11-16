@@ -40,7 +40,6 @@ def parse_options():
     parser.add_argument('--data_path', type=str, default='', help='Path to load data')
     parser.add_argument('--save_path', type=str, required=True, help='Path to save results')
     
-    parser.add_argument('--gender', typer=int, help='gender classification')
     # misc
     parser.add_argument('--seed', type=int, default=227)
 
