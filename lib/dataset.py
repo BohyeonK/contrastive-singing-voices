@@ -34,7 +34,7 @@ class DefaultSet(Dataset):
 
     def load(self, index):
         audio, sample_rate = torchaudio.load(self.files[index])
-#         assert sample_rate == self.sample_rate
+        assert sample_rate == self.sample_rate
         return torch.unsqueeze(torch.mean(audio, axis=0), dim=0)  # make it mono
 
     def reshape(self, audio, length):
