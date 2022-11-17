@@ -16,16 +16,15 @@ from torchaudio import sox_effects, transforms
 
 
 class DefaultSet(Dataset):
-    def __init__(self, root, subset, input_len, n_fft, gender, sample_rate=None):
+    def __init__(self, root, subset, input_len, n_fft, sample_rate=None):
         super().__init__()
 
         self.sample_rate = 44100 if sample_rate is None else sample_rate
         self.input_len = input_len
         self.fft = transforms.Spectrogram(n_fft=n_fft)
-        self.gender = 0
         
         with open(os.path.join(root,subset + '.csv')) as input_csv:
-            self.files, labels = zip(*[(row[0], int(row[1])) for row in csv.reader(input_csv)])
+            self.files, labels = zip(*[(row[0], row[1]) for row in csv.reader(input_csv)])
             
         uniq_labels = sorted(set(labels))
         self.num_classes = len(uniq_labels)
@@ -56,8 +55,8 @@ class DefaultSet(Dataset):
 
 class ContrastiveSet(DefaultSet):
     def __init__(self, root, subset, input_len, n_fft, pitch, stretch, gender, sample_rate=None):
-        super().__init__(root, subset, input_len, n_fft, sample_rate, gender)
-        self.pitch, self.stretch = pitch, stretch
+        super().__init__(root, subset, input_len, n_fft, sample_rate)
+        self.pitch, self.stretch, self.gender = pitch, stretch, gender
         
     def pitch_shift(self, audio, pitch):
         source = self.reshape(audio, self.input_len + 50)
