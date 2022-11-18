@@ -17,7 +17,7 @@ from torchaudio import sox_effects, transforms
 
 
 class DefaultSet(Dataset):
-    def __init__(self, root, subset, input_len, n_fft, sample_rate=None):
+    def __init__(self, root, subset, input_len, n_fft, gender, sample_rate=None):
         super().__init__()
 
         self.sample_rate = 44100 if sample_rate is None else sample_rate
@@ -27,7 +27,7 @@ class DefaultSet(Dataset):
         data = pd.read_csv(os.path.join(root, subset + '.csv'))
         self.files = tuple(data['vocal'])
         labels = tuple(data['label'])
-        self.gender = 1
+        self.gender = gender
 
         uniq_labels = sorted(set(labels))
         self.num_classes = len(uniq_labels)
