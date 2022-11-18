@@ -40,6 +40,9 @@ def parse_options():
     parser.add_argument('--data_path', type=str, default='', help='Path to load data')
     parser.add_argument('--save_path', type=str, required=True, help='Path to save results')
 
+    # pitch shift by gender
+    parser.add_argument('--gender', type=int, default=2)
+
     # misc
     parser.add_argument('--seed', type=int, default=227)
 
@@ -110,7 +113,7 @@ def main(opts):
     softmax = torch.nn.Softmax(dim=1).cuda()
 
     ########### data ##############
-    dataset = DefaultSet(opts.data_path, opts.subset, checkpoint['opts'].input_len, checkpoint['opts'].n_fft)
+    dataset = DefaultSet(opts.data_path, opts.subset, checkpoint['opts'].input_len, checkpoint['opts'].n_fft, opts.gender)
     dataloader = DataLoader(dataset, batch_size=opts.batch_size, shuffle=False,
                             num_workers=opts.num_workers, pin_memory=True, drop_last=False)
 
