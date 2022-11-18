@@ -27,6 +27,7 @@ class DefaultSet(Dataset):
         data = pd.read_csv(os.path.join(root, subset + '.csv'))
         self.files = tuple(data['vocal'])
         labels = tuple(data['label'])
+        self.gender = 1
 
         uniq_labels = sorted(set(labels))
         self.num_classes = len(uniq_labels)
@@ -51,8 +52,32 @@ class DefaultSet(Dataset):
             audio = audio[:, idx: idx + length]
         return audio
 
+    def pitch_shift_by_male(self, audio):
+        source = self.reshape(audio, self.input_len + 50)
+        pitch = random.choice([0,6])
+        effects = [['pitch', str(pitch * 100)], ['rate', str(self.sample_rate)]]
+        target, sample_rate = sox_effects.apply_effects_tensor(source, self.sample_rate, effects)
+        
+        assert sample_rate == self.sample_rate
+
+        return self.reshape(target, self.input_len)
+
+    def pitch_shift_by_female(self, audio):
+        source = self.reshape(audio, self.input_len + 50)
+        pitch = random.choice([-6,0])
+        effects = [['pitch', str(pitch * 100)], ['rate', str(self.sample_rate)]]
+        target, sample_rate = sox_effects.apply_effects_tensor(source, self.sample_rate, effects)
+        
+        assert sample_rate == self.sample_rate
+
+        return self.reshape(target, self.input_len)
+
     def __getitem__(self, index):
         audio = self.reshape(self.load(index), self.input_len)
+        if self.gender == 0:
+            audio = self.pitch_shift_by_male(audio)
+        elif self.gender == 1:
+            audio = self.pitch_shift_by_female(audio)
         return index, self.fft(audio), torch.tensor(self.labels[index], dtype=torch.int64)
 
     def __len__(self) -> int:
@@ -87,10 +112,7 @@ class ContrastiveSet(DefaultSet):
         audio_orig = self.reshape(audio, self.input_len)
 
         reshape_func = functools.partial(self.reshape, length=self.input_len)
-        if self.gender == 0:
-            pitch_func = functools.partial(self.pitch_shift, pitch=random.choice([1, 7]))
-        elif self.gender == 1:
-            pitch_func = functools.partial(self.pitch_shift, pitch=random.choice([-6, 0]))
+        pitch_func = functools.partial(self.pitch_shift, pitch=random.choice([-3, 3]))
         stretch_func = functools.partial(self.time_stretch, speed=random.choice([0.65, 1.70]))
 
         pos_funcs = []
