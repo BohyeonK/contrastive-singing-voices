@@ -36,7 +36,7 @@ def parse_options():
     parser.add_argument('--batch_size', type=int, default=50, help='Batch size')
     parser.add_argument('--num_workers', type=int, default=35, help='Number of workers to load data')
     parser.add_argument('--n_fft', type=int, default=800, help='Size of FFT to be applied to the input data')
-    parser.add_argument('--input_len', type=int, default=80000, help='Length of the input data for the time axis')
+    parser.add_argument('--input_len', type=int, default=1323000, help='Length of the input data for the time axis')
 
     # optimization
     parser.add_argument('--learning_rate', type=float, default=0.01, help='Learning rate')
