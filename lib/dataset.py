@@ -37,7 +37,7 @@ class DefaultSet(Dataset):
     def load(self, index):
         audio, sample_rate = torchaudio.load(self.files[index])
         if sample_rate != 16000:
-            transform = transforms.Resample(sample_rate, 44100)
+            transform = transforms.Resample(sample_rate, 16000)
             audio = transform(audio)
             sample_rate = 16000
         assert sample_rate == self.sample_rate
@@ -54,7 +54,7 @@ class DefaultSet(Dataset):
 
     def pitch_shift_by_male(self, audio):
         source = self.reshape(audio, self.input_len + 50)
-        pitch = random.choice([0,6])
+        pitch = 6
         effects = [['pitch', str(pitch * 100)], ['rate', str(self.sample_rate)]]
         target, sample_rate = sox_effects.apply_effects_tensor(source, self.sample_rate, effects)
         
@@ -64,7 +64,7 @@ class DefaultSet(Dataset):
 
     def pitch_shift_by_female(self, audio):
         source = self.reshape(audio, self.input_len + 50)
-        pitch = random.choice([-6,0])
+        pitch = -6
         effects = [['pitch', str(pitch * 100)], ['rate', str(self.sample_rate)]]
         target, sample_rate = sox_effects.apply_effects_tensor(source, self.sample_rate, effects)
         
